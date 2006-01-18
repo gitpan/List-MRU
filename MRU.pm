@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.01';
+our $VERSION = '0.03';
 
 # -------------------------------------------------------------------------
 # Constructor
@@ -20,7 +20,10 @@ sub new
   bless {
     max  => $arg{max},
     'eq' => $arg{eq},
+    uuid => $arg{uuid},
     list => [],
+    ulist => [],
+    current => 0,
   }, $class;
 }
 
@@ -30,38 +33,67 @@ sub new
 sub _truncate
 {
   my $self = shift;
-  pop @{$self->{list}} while scalar @{$self->{list}} > $self->{max};
+  pop @{$self->{list}} while scalar @{$self->{list}} > $self->max;
+  if ($self->uuid) {
+    pop @{$self->{ulist}} while scalar @{$self->{ulist}} > $self->max;
+  }
 }
+
+sub _reset { shift->{current} = 0; }
 
 # -------------------------------------------------------------------------
 # Public methods
 
-# Add $item, moving to head of list if already exists
+# Add $item, moving to head of list if already exists 
+#   (returns $self for method chaining)
 sub add
 {
   my $self = shift;
-  my $item = shift;
+  my ($item, $uuid) = @_;
   croak "no item given to add" unless defined $item;
-  if ($self->delete($item)) {
+  croak "no uuid given to add" if $self->uuid && ! defined $uuid;
+  if ($self->delete($item, $uuid)) {
     unshift @{$self->{list}}, $item;
+    unshift @{$self->{ulist}}, $uuid if $self->uuid;
   }
   else {
     unshift @{$self->{list}}, $item;
+    unshift @{$self->{ulist}}, $uuid if $self->uuid;
     $self->_truncate;
   }
+  $self
 }
 
-# Delete (first) $item, returning it if found.
+# Delete (first) matching $item (by self or by uuid), returning it if found.
 sub delete
 {
   my $self = shift;
-  my $item = shift;
+  my ($item, $uuid) = @_;
   croak "no item given to delete" unless defined $item;
   my $eq = $self->{eq} || sub { $_[0] eq $_[1] };
   for my $i (0 .. $#{$self->{list}}) {
-    if ($eq->($item, $self->{list}->[$i])) {
-      return splice @{$self->{list}}, $i, 1;
+    if (($self->uuid && $uuid && $self->{ulist}->[$i] eq $uuid) ||
+        ($eq->($item, $self->{list}->[$i]))) {
+      my $deleted = splice @{$self->{list}}, $i, 1;
+      my $udeleted = splice @{$self->{ulist}}, $i, 1 if $self->uuid;
+      return wantarray && $self->uuid ? ($deleted, $udeleted) : $deleted;
     }
+  }
+}
+
+# Iterator
+sub each  { 
+  my $self = shift;
+  if ($self->{current} <= $#{$self->{list}}) {
+    my $current = $self->{current}++;
+    return wantarray ? 
+      ($self->{list}->[$current], $self->uuid ? $self->{ulist}->[$current] : undef) :
+      $self->{list}->[$current];
+  }
+  else {
+    # Reset current
+    $self->_reset;
+    return wantarray ? () : undef;
   }
 }
 
@@ -69,6 +101,7 @@ sub delete
 sub list  { wantarray ? @{shift->{list}} : shift->{list} }
 sub max   { shift->{max} }
 sub count { scalar @{shift->{list}} }
+sub uuid  { shift->{uuid} }
 
 1;
 
@@ -76,8 +109,7 @@ __END__
 
 =head1 NAME
 
-List::MRU - Perl module implementing a simple fixed-size 
-MRU-ordered list.
+List::MRU - Perl module implementing a simple fixed-size MRU-ordered list.
 
 =head1 SYNOPSIS
 
@@ -85,17 +117,27 @@ MRU-ordered list.
 
   # Constructor
   $lm = List::MRU->new(max => 20);
+
   # Constructor with explicit 'eq' subroutine for obj equality tests
   $lm = List::MRU->new(max => 20, 'eq' => sub {
     $_[0]->stringify eq $_[1]->stringify
   });
 
+  # Constructor using explicit UUIDs
+  $lm - List::MRU->new(max => 5, uuid => 1);
+
   # Add item, moving to head of list if already exists
   $lm->add($item);
+  # Add item, moving to head of list if $uuid matches or object already exists
+  $lm->add($item, $uuid);
 
   # Iterate in most-recently-added order
-  for my $item ($lm->list) {
-    print $item;
+  for $item ($lm->list) {
+    print "$item\n";
+  }
+  # each-style iteration
+  while (($item, $uuid) = $lm->each) {
+    print "$item, $uuid\n";
   }
 
   # Accessors
@@ -115,6 +157,10 @@ Works fine with with non-scalar items, but you will need to
 supply an explicit 'eq' subroutine to the constructor to handle
 testing for the 'same' object (or alternatively have overloaded
 the 'eq' operator for your object).
+
+List::MRU also supports having explicit UUIDs attached to items,
+allowing List::MRU items to be modified, instead of a change just
+creating a new entry.
 
 
 =head1 SEE ALSO

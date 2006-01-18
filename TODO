@@ -1,3 +1,4 @@
 - add an iterator interface
 - remove size restriction
+- remove stupid 5.8 requirement
 

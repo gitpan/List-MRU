@@ -2,6 +2,23 @@
 # arch-tag: automatic-ChangeLog--gavin@openfusion.com.au--public-2004/cpan--list-mru--0
 #
 
+2006-01-16 21:17:02 GMT	Gavin Carr <gavin@openfusion.com.au>	patch-8
+
+    Summary:
+      Add uuid support to List::MRU; update to version 0.03.
+    Revision:
+      cpan--list-mru--0--patch-8
+
+    Add uuid support to List::MRU; update to version 0.03.
+    
+
+    new files:
+     t/.arch-ids/05_uuid.t.id t/05_uuid.t
+
+    modified files:
+     ChangeLog MRU.pm TODO
+
+
 2005-08-31 11:42:46 GMT	Gavin Carr <gavin@openfusion.com.au>	patch-7
 
     Summary:

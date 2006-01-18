@@ -6,3 +6,4 @@ README
 t/01_base.t
 t/02_errors.t
 t/03_eq.t
+t/05_uuid.t
