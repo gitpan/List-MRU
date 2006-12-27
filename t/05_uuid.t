@@ -1,6 +1,6 @@
 # uuid tests
 
-use Test::More tests => 19;
+use Test::More tests => 22;
 BEGIN { use_ok('List::MRU') };
 
 my $MAX = 3;
@@ -45,6 +45,11 @@ is(join(',',$lm->list()),'DEF,ghia,jkl','list ok');
 $lm->add('JKL', 'jkl');
 is($lm->count,$MAX,'add, count max');
 is(join(',',$lm->list()),'JKL,DEF,ghia','list ok');
+
+# Delete
+is($lm->delete(uuid => 'jkl'),'JKL','delete returns item');
+is($lm->count,2,'count 2 after delete');
+is(join(',',$lm->list()),'DEF,ghia','list ok');
 
 # Dump
 while (($item, $uuid) = $lm->each) {

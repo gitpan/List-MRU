@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Carp;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 # -------------------------------------------------------------------------
 # Constructor
@@ -52,7 +52,7 @@ sub add
   my ($item, $uuid) = @_;
   croak "no item given to add" unless defined $item;
   croak "no uuid given to add" if $self->uuid && ! defined $uuid;
-  if ($self->delete($item, $uuid)) {
+  if ($self->delete(item => $item, uuid => $uuid)) {
     unshift @{$self->{list}}, $item;
     unshift @{$self->{ulist}}, $uuid if $self->uuid;
   }
@@ -69,11 +69,18 @@ sub delete
 {
   my $self = shift;
   my ($item, $uuid) = @_;
-  croak "no item given to delete" unless defined $item;
+  # Check for named arguments style call
+  if ($item && ($item eq 'item' || $item eq 'uuid')) {
+    my %arg = @_;
+    $arg{$item} = $uuid;
+    $item = $arg{item};
+    $uuid = $arg{uuid};
+  }
+  croak "no item given to delete" unless defined $item or defined $uuid;
   my $eq = $self->{eq} || sub { $_[0] eq $_[1] };
   for my $i (0 .. $#{$self->{list}}) {
     if (($self->uuid && $uuid && $self->{ulist}->[$i] eq $uuid) ||
-        ($eq->($item, $self->{list}->[$i]))) {
+        ($item && $eq->($item, $self->{list}->[$i]))) {
       my $deleted = splice @{$self->{list}}, $i, 1;
       my $udeleted = splice @{$self->{ulist}}, $i, 1 if $self->uuid;
       return wantarray && $self->uuid ? ($deleted, $udeleted) : $deleted;
@@ -140,6 +147,10 @@ List::MRU - Perl module implementing a simple fixed-size MRU-ordered list.
     print "$item, $uuid\n";
   }
 
+  # Item deletion
+  $lm->delete($item);
+  $lm->delete(uuid => $uuid);
+
   # Accessors
   $max = $lm->max;        # max items in list
   $count = $lm->count;    # current items in list
@@ -176,7 +187,7 @@ Gavin Carr <gavin@openfusion.com.au>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright 2005 by Open Fusion Pty. Ltd.
+Copyright 2005-2006 by Open Fusion Pty. Ltd.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself. 

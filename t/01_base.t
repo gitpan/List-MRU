@@ -1,6 +1,6 @@
 # Base functionality tests
 
-use Test::More tests => 18;
+use Test::More tests => 21;
 BEGIN { use_ok('List::MRU') };
 
 my $MAX = 3;
@@ -40,4 +40,7 @@ is(join(',',$lm->list()),'def,ghi,jkl','list ok');
 is($lm->delete('ghi'),'ghi','delete returns item');
 is($lm->count,2,'count 2 after delete');
 is(join(',',$lm->list()),'def,jkl','list ok');
+is($lm->delete(item => 'def'),'def','delete via item returns item');
+is($lm->count,1,'count 1 after delete');
+is(join(',',$lm->list()),'jkl','list ok');
 

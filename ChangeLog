@@ -2,6 +2,34 @@
 # arch-tag: automatic-ChangeLog--gavin@openfusion.com.au--public-2004/cpan--list-mru--0
 #
 
+2006-06-12 21:42:18 GMT	Gavin Carr <gavin@openfusion.com.au>	patch-10
+
+    Summary:
+      Add named-argument version of delete; update to 0.04.
+    Revision:
+      cpan--list-mru--0--patch-10
+
+    Add named-argument version of delete; update to 0.04.
+    
+
+    modified files:
+     ChangeLog MRU.pm t/01_base.t t/05_uuid.t
+
+
+2006-06-12 21:29:23 GMT	Gavin Carr <gavin@openfusion.com.au>	patch-9
+
+    Summary:
+      Add 05_uuid.t to MANIFEST.
+    Revision:
+      cpan--list-mru--0--patch-9
+
+    Add 05_uuid.t to MANIFEST.
+    
+
+    modified files:
+     ChangeLog MANIFEST
+
+
 2006-01-16 21:17:02 GMT	Gavin Carr <gavin@openfusion.com.au>	patch-8
 
     Summary:
